@@ -32,4 +32,8 @@ class VideoPlayer {
         this.currentlyPlayingVideo.show();
         this.currentlyPlayingVideo.play();
     }
+
+    draw() {
+
+    }
 };
