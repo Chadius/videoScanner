@@ -1,7 +1,6 @@
 let videoPlayer
 let videoFileInput;
 /* TODO list
-Show playtime position - text
 Add custom controls - Play/Pause
 Add custom controls - Slow/Double speed
 Show playtime position - draw a line
@@ -16,6 +15,7 @@ function preload() {
 
 function setup() {
     createCanvas(1024, 900);
+    colorMode(HSB, 360, 100, 100);
 
     videoFileInput = createFileInput(loadVideo);
     videoFileInput.position(0,0);
@@ -23,7 +23,6 @@ function setup() {
 }
 
 function loadVideo(file) {
-    console.log(file);
     if (file.type === "video") {
         videoPlayer.loadVideo(
             file.data,
@@ -36,7 +35,6 @@ function loadVideo(file) {
 }
 
 function draw() {
-    background(100);
-    fill(192);
+    background(100, 10, 90);
     videoPlayer.draw();
 }
