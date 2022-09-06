@@ -3,6 +3,9 @@ class VideoPlayer {
         this.src = null;
         this.currentlyPlayingVideo = undefined;
         this.progressBar = undefined;
+
+        this.videoIsPlaying = false;
+        this.videoHasEnded = false;
     }
 
     loadVideo(src, callbackFcn) {
@@ -32,8 +35,27 @@ class VideoPlayer {
         // Play the video
         this.currentlyPlayingVideo.show();
         this.currentlyPlayingVideo.play();
+        this.videoIsPlaying = true;
 
         this.progressBar = new ProgressBar(this.currentlyPlayingVideo.duration());
+    }
+
+    playButtonPressed() {
+        //if the video is paused, resume
+        if (!this.videoIsPlaying) {
+            this.currentlyPlayingVideo.play();
+            this.videoIsPlaying = true;
+            this.progressBar.pausedVideo(false);
+            return;
+        }
+
+        //if the video is playing, pause
+        if (this.videoIsPlaying) {
+            this.currentlyPlayingVideo.pause();
+            this.videoIsPlaying = false;
+            this.progressBar.pausedVideo(true);
+            return;
+        }
     }
 
     draw() {
@@ -66,6 +88,10 @@ class ProgressBar {
   constructor(duration) {
       this.duration = duration;
       this.currentTime = 0;
+
+      this.pauseButton = createButton('Pause');
+      this.pauseButton.position(0, 800);
+      this.pauseButton.mousePressed(playButtonPressed);
   }
 
   updateCurrentTime(time) {
@@ -114,5 +140,13 @@ class ProgressBar {
       }
 
       return hours + ":" + minutes + ":" + seconds + "." + tenths;
+  }
+
+  pausedVideo(isPaused) {
+      if (isPaused) {
+          this.pauseButton.html("Play");
+          return;
+      }
+      this.pauseButton.html("Pause");
   }
 };

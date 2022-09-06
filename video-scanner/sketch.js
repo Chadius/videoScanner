@@ -1,7 +1,6 @@
 let videoPlayer
 let videoFileInput;
 /* TODO list
-Add custom controls - Play/Pause
 Add custom controls - Slow/Double speed
 Show playtime position - draw a line
 Show thumbnail when mouse hovers over position
@@ -32,6 +31,10 @@ function loadVideo(file) {
             }
         );
     }
+}
+
+function playButtonPressed() {
+    videoPlayer.playButtonPressed();
 }
 
 function draw() {
