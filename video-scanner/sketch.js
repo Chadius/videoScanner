@@ -2,9 +2,6 @@ let videoPlayer
 let videoFileInput;
 /* TODO list
 Add custom controls - Slow/Double speed
-Show playtime position - draw a line
-Show thumbnail when mouse hovers over position
-
 Hide/Show Video Button
  */
 

@@ -84,14 +84,16 @@ TODO for progress bar
 - Click on the bar to move the video to that point
  */
 
+const fullTimeElapseBarLength = 900;
+
 class ProgressBar {
   constructor(duration) {
       this.duration = duration;
       this.currentTime = 0;
 
-      this.pauseButton = createButton('Pause');
-      this.pauseButton.position(0, 800);
-      this.pauseButton.mousePressed(playButtonPressed);
+      this.playPauseButton = createButton('Pause');
+      this.playPauseButton.position(0, 790);
+      this.playPauseButton.mousePressed(playButtonPressed);
   }
 
   updateCurrentTime(time) {
@@ -103,13 +105,33 @@ class ProgressBar {
       this.drawTimeElapseText();
   }
 
+  getTimeElapseBarWidth() {
+      const durationOfInterval = 600;
+      const currentInterval = int(this.currentTime / durationOfInterval);
+      const startOfInterval = currentInterval * durationOfInterval;
+      const timeRemaining = this.duration - startOfInterval;
+
+      if (timeRemaining >= durationOfInterval) {
+          return fullTimeElapseBarLength;
+      }
+      return map(timeRemaining, 0, durationOfInterval, 0, fullTimeElapseBarLength);
+  }
+
+  getCurrentTimeBarWidth() {
+      const durationOfInterval = 600;
+      const currentInterval = int(this.currentTime / durationOfInterval);
+      const startOfInterval = currentInterval * durationOfInterval;
+      const timeRemaining = this.currentTime - startOfInterval;
+
+      return map(timeRemaining, 0, durationOfInterval, 0, fullTimeElapseBarLength);
+  }
+
   drawTimeElapseBar() {
       push();
       fill(0, 0, 80);
       stroke(0, 0, 70);
-      rect(80, 710, 902, 20);
-
-      const barWidth = map(this.currentTime, 0, this.duration, 0, 900)
+      rect(80, 710, this.getTimeElapseBarWidth() + 2, 20);
+      const barWidth = this.getCurrentTimeBarWidth();
       fill(0, 0, 50);
       noStroke();
       rect(81, 711, barWidth, 18);
@@ -144,9 +166,9 @@ class ProgressBar {
 
   pausedVideo(isPaused) {
       if (isPaused) {
-          this.pauseButton.html("Play");
+          this.playPauseButton.html("Play");
           return;
       }
-      this.pauseButton.html("Pause");
+      this.playPauseButton.html("Pause");
   }
 };
