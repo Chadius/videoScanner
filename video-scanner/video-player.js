@@ -1,11 +1,12 @@
 class VideoPlayer {
-    constructor() {
+    constructor(params) {
         this.src = null;
         this.currentlyPlayingVideo = undefined;
-        this.progressBar = undefined;
 
         this.videoIsPlaying = false;
         this.videoHasEnded = false;
+
+        this.messageHandler = params.messageHandler;
     }
 
     loadVideo(src, callbackFcn) {
@@ -37,7 +38,16 @@ class VideoPlayer {
         this.currentlyPlayingVideo.play();
         this.videoIsPlaying = true;
 
-        this.progressBar = new ProgressBar(this.currentlyPlayingVideo.duration());
+        // Tell the progress bar to reset and change the duration
+        this.messageHandler.addMessage(
+            "progress bar",
+            {
+                command: "change duration",
+                meta: {
+                    duration: this.currentlyPlayingVideo.duration()
+                }
+            }
+        );
     }
 
     playButtonPressed() {
@@ -45,7 +55,14 @@ class VideoPlayer {
         if (!this.videoIsPlaying) {
             this.currentlyPlayingVideo.play();
             this.videoIsPlaying = true;
-            this.progressBar.pausedVideo(false);
+
+            // Tell the progress bar to unpause
+            this.messageHandler.addMessage(
+                "progress bar",
+                {
+                    command: "unpause",
+                }
+            );
             return;
         }
 
@@ -53,7 +70,17 @@ class VideoPlayer {
         if (this.videoIsPlaying) {
             this.currentlyPlayingVideo.pause();
             this.videoIsPlaying = false;
-            this.progressBar.pausedVideo(true);
+
+            // Tell the progress bar to pause
+            this.messageHandler.addMessage(
+                "progress bar",
+                {
+                    command: "pause",
+                    meta: {
+                        currentTime: this.currentlyPlayingVideo.time()
+                    }
+                }
+            );
             return;
         }
     }
@@ -64,11 +91,17 @@ class VideoPlayer {
             return;
         }
 
-        if (this.progressBar) {
-            this.progressBar.updateCurrentTime(
-                this.currentlyPlayingVideo.time()
+        if (this.currentlyPlayingVideo) {
+            // Tell the progress bar to update the time elapsed in the video.
+            this.messageHandler.addMessage(
+                "progress bar",
+                {
+                    command: "update time",
+                    meta: {
+                        currentTime: this.currentlyPlayingVideo.time()
+                    }
+                }
             );
-            this.progressBar.draw();
         }
     }
 };
@@ -82,12 +115,24 @@ TODO for progress bar
 - Show thumbnail when mouse hovers over (.1 second accuracy)
 - Add +- 10 minute buttons
 - Click on the bar to move the video to that point
+-- Clicking on this pauses the video
+- Add 10th of a second minibar when the user clicks on a point
+-- Should be +- 5 seconds?
+- Playback speed buttons: Double speed, put next to Pause?
  */
 
 const fullTimeElapseBarLength = 900;
 
 class ProgressBar {
-  constructor(duration) {
+  constructor(params) {
+      this.duration = undefined;
+      this.currentTime = 0;
+
+      this.messageHandler = params.messageHandler;
+      this.messageHandler.registerRecipient("progress bar", this);
+  }
+
+  setDurationAndReset(duration) {
       this.duration = duration;
       this.currentTime = 0;
 
@@ -101,6 +146,10 @@ class ProgressBar {
   }
 
   draw() {
+      if (this.duration === undefined) {
+          return;
+      }
+
       this.drawTimeElapseBar();
       this.drawTimeElapseText();
   }
@@ -170,5 +219,26 @@ class ProgressBar {
           return;
       }
       this.playPauseButton.html("Pause");
+  }
+
+  async receiveMessage(message) {
+      // Handle the message based on the type of command.
+      switch (message.command) {
+          case "change duration":
+              this.setDurationAndReset(message.meta.duration);
+              break;
+          case "pause":
+              this.updateCurrentTime(message.meta.currentTime);
+              this.pausedVideo(true);
+              break;
+          case "unpause":
+              this.pausedVideo(false);
+              break;
+          case "update time":
+              this.updateCurrentTime(message.meta.currentTime);
+              break;
+          default:
+              console.warn("Unknown command: " + message.command);
+      }
   }
 };

@@ -1,12 +1,20 @@
 let videoPlayer
 let videoFileInput;
+let progressBar;
+let messageHandler;
 /* TODO list
 Add custom controls - Slow/Double speed
 Hide/Show Video Button
  */
 
 function preload() {
-    videoPlayer = new VideoPlayer();
+    messageHandler = new MessageHandler();
+    videoPlayer = new VideoPlayer({
+        messageHandler: messageHandler
+    });
+    progressBar = new ProgressBar({
+        messageHandler: messageHandler
+    });
 }
 
 function setup() {
@@ -37,4 +45,5 @@ function playButtonPressed() {
 function draw() {
     background(100, 10, 90);
     videoPlayer.draw();
+    progressBar.draw();
 }
