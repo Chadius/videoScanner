@@ -39,13 +39,10 @@ class VideoPlayer {
         this.videoIsPlaying = true;
 
         // Tell the progress bar to reset and change the duration
-        this.messageHandler.addMessage(
-            "progress bar",
+        this.messageHandler.publish(
+            "videoPlayerChangedDuration",
             {
-                command: "change duration",
-                meta: {
-                    duration: this.currentlyPlayingVideo.duration()
-                }
+                duration: this.currentlyPlayingVideo.duration()
             }
         );
     }
@@ -57,11 +54,8 @@ class VideoPlayer {
             this.videoIsPlaying = true;
 
             // Tell the progress bar to unpause
-            this.messageHandler.addMessage(
-                "progress bar",
-                {
-                    command: "unpause",
-                }
+            this.messageHandler.publish(
+                "videoPlayerUnpaused",
             );
             return;
         }
@@ -72,13 +66,10 @@ class VideoPlayer {
             this.videoIsPlaying = false;
 
             // Tell the progress bar to pause
-            this.messageHandler.addMessage(
-                "progress bar",
+            this.messageHandler.publish(
+                "videoPlayerPaused",
                 {
-                    command: "pause",
-                    meta: {
-                        currentTime: this.currentlyPlayingVideo.time()
-                    }
+                    currentTime: this.currentlyPlayingVideo.time()
                 }
             );
             return;
@@ -92,14 +83,10 @@ class VideoPlayer {
         }
 
         if (this.currentlyPlayingVideo) {
-            // Tell the progress bar to update the time elapsed in the video.
-            this.messageHandler.addMessage(
-                "progress bar",
+            this.messageHandler.publish(
+                "videoPlayerUpdatedCurrentTime",
                 {
-                    command: "update time",
-                    meta: {
-                        currentTime: this.currentlyPlayingVideo.time()
-                    }
+                    currentTime: this.currentlyPlayingVideo.time()
                 }
             );
         }
@@ -129,7 +116,10 @@ class ProgressBar {
       this.currentTime = 0;
 
       this.messageHandler = params.messageHandler;
-      this.messageHandler.registerRecipient("progress bar", this);
+      this.messageHandler.subscribe("videoPlayerChangedDuration", this);
+      this.messageHandler.subscribe("videoPlayerUnpaused", this);
+      this.messageHandler.subscribe("videoPlayerPaused", this);
+      this.messageHandler.subscribe("videoPlayerUpdatedCurrentTime", this);
   }
 
   setDurationAndReset(duration) {
@@ -221,24 +211,24 @@ class ProgressBar {
       this.playPauseButton.html("Pause");
   }
 
-  async receiveMessage(message) {
-      // Handle the message based on the type of command.
-      switch (message.command) {
-          case "change duration":
-              this.setDurationAndReset(message.meta.duration);
+  async receiveMessage(channel_message) {
+      const { channel, message } = channel_message;
+      switch (channel) {
+          case "videoPlayerChangedDuration":
+              this.setDurationAndReset(message.duration);
               break;
-          case "pause":
-              this.updateCurrentTime(message.meta.currentTime);
-              this.pausedVideo(true);
-              break;
-          case "unpause":
+          case "videoPlayerUnpaused":
               this.pausedVideo(false);
               break;
-          case "update time":
-              this.updateCurrentTime(message.meta.currentTime);
+          case "videoPlayerPaused":
+              this.updateCurrentTime(message.currentTime);
+              this.pausedVideo(true);
+              break;
+          case "videoPlayerUpdatedCurrentTime":
+              this.updateCurrentTime(message.currentTime);
               break;
           default:
-              console.warn("Unknown command: " + message.command);
+              console.warn("Unknown channel: " + channel);
       }
   }
 };

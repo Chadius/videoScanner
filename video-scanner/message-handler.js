@@ -1,25 +1,24 @@
 class MessageHandler {
     /* Very simple asynchronous message handler.
 
-    Call registerReceiver to add a recipient.
-    Recipients must have a receiveMessage() function.
-
-    Senders can call addMessage to send a message.
-    If the recipient doesn't exist the message is dropped.
+    Call Subscribe with the object and the channel it will listen to.
+    Call Publish when you want to send a message to the channel.
     */
 
     constructor() {
         this.buffer = [];
-        this.recipients = {}
 
-        this.checkForMessagesInterval = setInterval(() => this.checkForMessages(), 1000/60);
+        this.subscribersByChannel = {};
+
+        this.checkForMessagesInterval = setInterval(() => this.publishMessagesToSubscribers(), 1000/60);
     }
 
-    registerRecipient(name, receiver) {
-        this.recipients[name] = receiver;
+    subscribe(channel, receiver) {
+        this.subscribersByChannel[channel] = this.subscribersByChannel[channel] ?? [];
+        this.subscribersByChannel[channel].push(receiver);
     }
 
-    addMessage(recipientName, message) {
+    publish(channel, message) {
         // Add this message to the buffer.
 
         /* message is an object
@@ -28,12 +27,12 @@ class MessageHandler {
          */
 
         this.buffer.push({
-            recipient: recipientName,
+            channel: channel,
             message: message,
         });
     }
 
-    async checkForMessages() {
+    async publishMessagesToSubscribers() {
         // If no messages, return
         if (this.buffer.length === 0) {
             return;
@@ -42,10 +41,14 @@ class MessageHandler {
         // Pop the top message
         const top = this.buffer.shift();
 
-        // If the recipient exists pass the message
-        const recipients = Object.keys(this.recipients);
-        if (recipients.includes(top.recipient)) {
-            await this.recipients[top.recipient].receiveMessage(top.message);
+        const subscribers = this.subscribersByChannel[top.channel];
+
+        if (!subscribers) {
+            return;
         }
+
+        subscribers.forEach((sub) => {
+            sub.receiveMessage(top);
+        });
     }
 }
