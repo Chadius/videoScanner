@@ -3,7 +3,6 @@ let videoFileInput;
 let progressBar;
 let messageHandler;
 /* TODO list
-Add custom controls - Slow/Double speed
 Hide/Show Video Button
  */
 
@@ -38,6 +37,7 @@ function loadVideo(file) {
     }
 }
 
+// TODO Move function into Progress Bar
 function playButtonPressed() {
     videoPlayer.playButtonPressed();
 }
