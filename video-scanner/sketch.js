@@ -37,11 +37,6 @@ function loadVideo(file) {
     }
 }
 
-// TODO Move function into Progress Bar
-function playButtonPressed() {
-    videoPlayer.playButtonPressed();
-}
-
 function draw() {
     background(100, 10, 90);
     videoPlayer.draw();

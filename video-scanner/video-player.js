@@ -8,6 +8,7 @@ class VideoPlayer {
 
         this.messageHandler = params.messageHandler;
         this.messageHandler.subscribe("doubleSpeedVideoToggled", this);
+        this.messageHandler.subscribe("playPauseButtonToggled", this);
     }
 
     loadVideo(src, callbackFcn) {
@@ -47,31 +48,18 @@ class VideoPlayer {
         );
     }
 
-    playButtonPressed() {
+    playButtonPressed(desiredPauseState) {
         //if the video is paused, resume
-        if (!this.videoIsPlaying) {
+        if (desiredPauseState === "play") {
             this.currentlyPlayingVideo.play();
             this.videoIsPlaying = true;
-
-            // Tell the progress bar to unpause
-            this.messageHandler.publish(
-                "videoPlayerUnpaused",
-            );
             return;
         }
 
         //if the video is playing, pause
-        if (this.videoIsPlaying) {
+        if (desiredPauseState === "pause") {
             this.currentlyPlayingVideo.pause();
             this.videoIsPlaying = false;
-
-            // Tell the progress bar to pause
-            this.messageHandler.publish(
-                "videoPlayerPaused",
-                {
-                    currentTime: this.currentlyPlayingVideo.time()
-                }
-            );
         }
     }
 
@@ -81,7 +69,7 @@ class VideoPlayer {
             return;
         }
 
-        if (this.currentlyPlayingVideo) {
+        if (this.currentlyPlayingVideo && this.videoIsPlaying) {
             this.messageHandler.publish(
                 "videoPlayerUpdatedCurrentTime",
                 {
@@ -98,7 +86,9 @@ class VideoPlayer {
     async receiveMessage(channel_message) {
         const { channel, message } = channel_message;
         switch (channel) {
-            // TODO Should react to play button being pressed
+            case "playPauseButtonToggled":
+                this.playButtonPressed(message.desiredPauseState);
+                break;
             case "doubleSpeedVideoToggled":
                 this.changePlaybackSpeed(message.desiredPlaybackSpeed);
                 break;

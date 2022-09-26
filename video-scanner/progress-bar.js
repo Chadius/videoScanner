@@ -10,7 +10,6 @@ TODO for progress bar
 -- Clicking on this pauses the video
 - Add 10th of a second minibar when the user clicks on a point
 -- Should be +- 5 seconds?
-- Playback speed buttons: Double speed, put next to Pause?
  */
 
 const fullTimeElapseBarLength = 900;
@@ -32,11 +31,11 @@ class ProgressBar {
         this.duration = duration;
         this.currentTime = 0;
         this.playbackSpeed = 1;
+        this.isPaused = false;
 
         this.playPauseButton = createButton('Pause');
         this.playPauseButton.position(0, 790);
-        // TODO make object level function instead of global
-        this.playPauseButton.mousePressed(playButtonPressed);
+        this.playPauseButton.mousePressed(() => {this.userClickedOnPlayPauseToggle(this.isPaused)});
 
         this.doubleSpeedToggle = createButton('x2');
         this.doubleSpeedToggle.position(100, 790);
@@ -121,6 +120,14 @@ class ProgressBar {
             return;
         }
         this.playPauseButton.html("Pause");
+    }
+
+    userClickedOnPlayPauseToggle() {
+        this.isPaused = !this.isPaused;
+        this.messageHandler.publish("playPauseButtonToggled", {
+            desiredPauseState: this.isPaused ? "pause" : "play"
+        });
+        this.pausedVideo(this.isPaused);
     }
 
     userClickedDoubleSpeedVideoToggle() {
